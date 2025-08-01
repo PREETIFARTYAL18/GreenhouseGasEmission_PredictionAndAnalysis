@@ -5,8 +5,7 @@ import pandas as pd
 from utils.preprocessor import preprocess_input
 
 # Load model and scaler
-model = joblib.load('models/LR_model.pkl')
-
+model = joblib.load('models/RF_model.pkl')  # Use 'LR_model.pkl' if needed
 scaler = joblib.load('models/scaler.pkl')
 
 st.title("Supply Chain Emissions Prediction")
@@ -27,7 +26,6 @@ with st.form("prediction_form"):
     dq_geo = st.slider("DQ Geographical Correlation", 0.0, 1.0)
     dq_tech = st.slider("DQ Technological Correlation", 0.0, 1.0)
     dq_data = st.slider("DQ Data Collection", 0.0, 1.0)
-    # year = st.selectbox("Year", list(range(2010, 2017)))
 
     submit = st.form_submit_button("Predict")
 
@@ -42,11 +40,27 @@ if submit:
         'DQ GeographicalCorrelation of Factors without Margins': dq_geo,
         'DQ TechnologicalCorrelation of Factors without Margins': dq_tech,
         'DQ DataCollection of Factors without Margins': dq_data,
-        'Source': source,
-        # 'Year': year
+        'Source': source
     }
 
     input_df = preprocess_input(pd.DataFrame([input_data]))
+
+    expected_features = [
+        'Substance',
+        'Unit',
+        'Supply Chain Emission Factors without Margins',
+        'Margins of Supply Chain Emission Factors',
+        'DQ ReliabilityScore of Factors without Margins',
+        'DQ TemporalCorrelation of Factors without Margins',
+        'DQ GeographicalCorrelation of Factors without Margins',
+        'DQ TechnologicalCorrelation of Factors without Margins',
+        'DQ DataCollection of Factors without Margins',
+        'Source'
+    ]
+
+    input_df = input_df[expected_features]
+
+    st.write("Input feature columns:", input_df.columns.tolist())  # Debug info
     input_scaled = scaler.transform(input_df)
     prediction = model.predict(input_scaled)
 
